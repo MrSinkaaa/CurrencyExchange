@@ -16,7 +16,7 @@ public class ExchangeRatesServlet extends HttpServlet {
     private ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;");
         resp.addHeader("Access-Control-Allow-Origin", "*");
 

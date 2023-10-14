@@ -18,7 +18,7 @@ public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
         resp.addHeader("Access-Control-Allow-Origin", "*");
 
@@ -29,7 +29,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
         String codes = req.getPathInfo().replaceFirst("/", "").toUpperCase();
         String baseCode = codes.substring(0, 3);
-        String targetCode = codes.substring(3);
+         String targetCode = codes.substring(3);
 
         Optional<ExchangeRate> exchangeRate = exchangeRatesRepository.findByCodes(baseCode, targetCode);
         if(exchangeRate.isEmpty()) {

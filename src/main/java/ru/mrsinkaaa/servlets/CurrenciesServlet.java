@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @WebServlet("/currencies")
@@ -25,8 +27,8 @@ public class CurrenciesServlet extends HttpServlet {
 
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json;charset=UTF-8");
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/x-www-form-urlencoded;charset=UTF-8");
         resp.addHeader("Access-Control-Allow-Origin", "*");
 
         StringBuffer sb = new StringBuffer();
@@ -42,11 +44,11 @@ public class CurrenciesServlet extends HttpServlet {
         }
 
         try {
-            JSONObject jsonObject = HTTP.toJSONObject(sb.toString());
+            ArrayList<String> list = new ArrayList<>(List.of(sb.toString().split("&")));
 
-            String code = jsonObject.getString("code");
-            String fullName = jsonObject.getString("name");
-            String  sign = jsonObject.getString("sign");
+            String code = list.get(0).split("=")[1];
+            String fullName = list.get(1).split("=")[1];
+            String  sign = list.get(2).split("=")[1];
 
             currencyRepository.save(new Currency(code, fullName, sign));
 
@@ -55,16 +57,15 @@ public class CurrenciesServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
         resp.addHeader("Access-Control-Allow-Origin", "*");
 
         try {
-            resp.getWriter().println(new ObjectMapper().writeValueAsString(currencyRepository.findAll()));
+            resp.getWriter().println(new ObjectMapper().writeValueAsString(currencyRepository.findAll().stream().map(currency -> new CurrencyDTO(currency.getCode(), currency.getFullName(), currency.getSign())).toList()));
         } catch (IOException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database unavailable.");
         }

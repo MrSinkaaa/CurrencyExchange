@@ -18,7 +18,7 @@ public class CurrencyServlet extends HttpServlet {
     private CurrencyRepository currencyRepository = new CurrencyRepository();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
         resp.addHeader("Access-Control-Allow-Origin", "*");
 
