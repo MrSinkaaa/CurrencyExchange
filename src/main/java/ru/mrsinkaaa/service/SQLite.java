@@ -26,8 +26,10 @@ public class SQLite {
         try {
             Class.forName(driverName);
             connection = DriverManager.getConnection("jdbc:sqlite:" + path);
-        } catch (SQLException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("SQLite JDBC driver not found", e);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error connecting to SQLite database", e);
         }
     }
 

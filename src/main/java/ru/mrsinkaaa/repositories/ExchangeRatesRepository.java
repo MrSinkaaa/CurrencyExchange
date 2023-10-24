@@ -39,6 +39,26 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         return Optional.empty();
     }
 
+    public List<ExchangeRate> findByCode(String baseCurrencyCode) {
+        final String query = "SELECT * FROM exchangeRates WHERE BaseCurrencyId =?";
+
+        try {
+            PreparedStatement preparedStatement = sqlite.getConnection().prepareStatement(query);
+            preparedStatement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<ExchangeRate> exchangeRates = new ArrayList<>();
+            while (resultSet.next()) {
+                exchangeRates.add(createExchangeRate(resultSet));
+            }
+
+            return exchangeRates;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     public Optional<ExchangeRate> findByCodes(String baseCurrencyCode, String targetCurrencyCode) {
         final String query = "SELECT * FROM exchangeRates WHERE BaseCurrencyId = ? AND TargetCurrencyId = ?";
 

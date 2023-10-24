@@ -1,13 +1,11 @@
-package ru.mrsinkaaa.servlets;
+package ru.mrsinkaaa.servlets.exchange;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.HTTP;
 import org.json.JSONException;
-import org.json.JSONObject;
-import ru.mrsinkaaa.dto.CurrencyDTO;
 import ru.mrsinkaaa.entity.Currency;
+import ru.mrsinkaaa.entity.ExchangeRate;
 import ru.mrsinkaaa.repositories.CurrencyRepository;
-import ru.mrsinkaaa.service.CurrencyService;
+import ru.mrsinkaaa.repositories.ExchangeRatesRepository;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,17 +16,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+@WebServlet("/exchangeRates")
+public class ExchangeRatesServlet extends HttpServlet {
 
-@WebServlet("/currencies")
-public class CurrenciesServlet extends HttpServlet {
-
+    private ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
     private CurrencyRepository currencyRepository = new CurrencyRepository();
-
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/x-www-form-urlencoded;charset=UTF-8");
         resp.addHeader("Access-Control-Allow-Origin", "*");
 
         StringBuffer sb = new StringBuffer();
@@ -46,29 +43,26 @@ public class CurrenciesServlet extends HttpServlet {
         try {
             ArrayList<String> list = new ArrayList<>(List.of(sb.toString().split("&")));
 
-            String code = list.get(0).split("=")[1];
-            String fullName = list.get(1).split("=")[1];
-            String  sign = list.get(2).split("=")[1];
+            String baseCode = list.get(0).split("=")[1];
+            String targetCode = list.get(1).split("=")[1];
+            Double rate = Double.valueOf(list.get(2).split("=")[1]);
 
-            currencyRepository.save(new Currency(code, fullName, sign));
+            Currency baseCurrency = currencyRepository.findByCode(baseCode).get();
+            Currency targetCurrency = currencyRepository.findByCode(targetCode).get();
+
+            exchangeRatesRepository.save(new ExchangeRate(baseCurrency, targetCurrency, rate));
 
         } catch (JSONException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing JSON request string.");
             e.printStackTrace();
         }
-
     }
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json;charset=UTF-8");
         resp.addHeader("Access-Control-Allow-Origin", "*");
 
-        try {
-            resp.getWriter().println(new ObjectMapper().writeValueAsString(currencyRepository.findAll().stream().map(currency -> new CurrencyDTO(currency.getCode(), currency.getFullName(), currency.getSign())).toList()));
-        } catch (IOException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database unavailable.");
-        }
+        resp.getWriter().println(new ObjectMapper().writeValueAsString(exchangeRatesRepository.findAll()));
     }
+
 
 }

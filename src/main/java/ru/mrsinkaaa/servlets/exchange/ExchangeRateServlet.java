@@ -1,14 +1,14 @@
-package ru.mrsinkaaa.servlets;
+package ru.mrsinkaaa.servlets.exchange;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.mrsinkaaa.entity.ExchangeRate;
 import ru.mrsinkaaa.repositories.ExchangeRatesRepository;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -18,8 +18,36 @@ public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
 
     @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.addHeader("Access-Control-Allow-Origin", "*");
+
+        String requestType = req.getMethod();
+        if(requestType.equals("PATCH")) {
+
+            String codes = req.getPathInfo().replaceFirst("/", "").toUpperCase();
+            String baseCode = codes.substring(0, 3);
+            String targetCode = codes.substring(3);
+
+            Optional<ExchangeRate> exchangeRate = exchangeRatesRepository.findByCodes(baseCode, targetCode);
+
+            try {
+                BufferedReader br = req.getReader();
+                String line = br.readLine();
+
+                Double rate = Double.valueOf(line.split("=")[1]);
+
+                exchangeRate.get().setRate(rate);
+                exchangeRatesRepository.save(exchangeRate.get());
+            } catch (IOException e) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON.");
+
+            }
+
+        }
+    }
+
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
         resp.addHeader("Access-Control-Allow-Origin", "*");
 
         if(req.getPathInfo() == null || req.getPathInfo().equals("/")) {
@@ -29,7 +57,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
         String codes = req.getPathInfo().replaceFirst("/", "").toUpperCase();
         String baseCode = codes.substring(0, 3);
-         String targetCode = codes.substring(3);
+        String targetCode = codes.substring(3);
 
         Optional<ExchangeRate> exchangeRate = exchangeRatesRepository.findByCodes(baseCode, targetCode);
         if(exchangeRate.isEmpty()) {
@@ -37,6 +65,6 @@ public class ExchangeRateServlet extends HttpServlet {
             return;
         }
 
-        resp.getWriter().println(new ObjectMapper().writeValueAsString(exchangeRate));
+        resp.getWriter().println(new ObjectMapper().writeValueAsString(exchangeRate.get()));
     }
 }

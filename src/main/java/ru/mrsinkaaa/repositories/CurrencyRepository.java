@@ -41,12 +41,14 @@ public class CurrencyRepository implements CrudRepository<Currency> {
     public Optional<Currency> findByCode(String code) {
         final String query = "SELECT * FROM currencies WHERE code = ?";
 
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
         try {
-            PreparedStatement statement = sqlite.getConnection().prepareStatement(query);
+            statement = sqlite.getConnection().prepareStatement(query);
             statement.setString(1, code);
             statement.execute();
 
-            ResultSet resultSet = statement.getResultSet();
+            resultSet = statement.getResultSet();
             if (resultSet.next()) {
                 return Optional.ofNullable(createCurrency(resultSet));
             }
@@ -54,6 +56,21 @@ public class CurrencyRepository implements CrudRepository<Currency> {
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if(statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if(resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
         return Optional.empty();

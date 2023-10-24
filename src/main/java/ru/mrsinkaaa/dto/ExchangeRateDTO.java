@@ -4,28 +4,18 @@ import ru.mrsinkaaa.entity.Currency;
 
 public class ExchangeRateDTO {
 
-    private int id;
     private Currency baseCurrency;
     private Currency targetCurrency;
     private double rate;
     private double amount;
     private double convertedAmount;
 
-    public ExchangeRateDTO(int id, Currency baseCurrency, Currency targetCurrency, double rate, double amount, double convertedAmount) {
-        this.id = id;
+    public ExchangeRateDTO(Currency baseCurrency, Currency targetCurrency, double rate, double amount, double convertedAmount) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
         this.rate = rate;
         this.amount = amount;
         this.convertedAmount = convertedAmount;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public Currency getBaseCurrency() {
