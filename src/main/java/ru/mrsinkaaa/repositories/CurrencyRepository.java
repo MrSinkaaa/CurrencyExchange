@@ -11,8 +11,6 @@ import java.util.Optional;
 
 public class CurrencyRepository implements CrudRepository<Currency> {
 
-    private final SQLite sqlite = new SQLite();
-
     public CurrencyRepository() {
     }
 
@@ -21,7 +19,7 @@ public class CurrencyRepository implements CrudRepository<Currency> {
         final String query = "SELECT * FROM currencies WHERE id = ?";
 
         try {
-            PreparedStatement statement = sqlite.getConnection().prepareStatement(query);
+            PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
             statement.setLong(1, id);
             statement.execute();
 
@@ -44,7 +42,7 @@ public class CurrencyRepository implements CrudRepository<Currency> {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
-            statement = sqlite.getConnection().prepareStatement(query);
+            statement = SQLite.getConnection().prepareStatement(query);
             statement.setString(1, code);
             statement.execute();
 
@@ -57,7 +55,7 @@ public class CurrencyRepository implements CrudRepository<Currency> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            sqlite.closeConnection(statement, resultSet);
+            SQLite.closeConnection(statement, resultSet);
         }
 
         return Optional.empty();
@@ -68,8 +66,9 @@ public class CurrencyRepository implements CrudRepository<Currency> {
     public List<Currency> findAll() {
         final String query = "SELECT * FROM currencies";
 
+        PreparedStatement statement = null;
         try {
-            PreparedStatement statement = sqlite.getConnection().prepareStatement(query);
+            statement = SQLite.getConnection().prepareStatement(query);
 
             statement.execute();
 
@@ -83,6 +82,8 @@ public class CurrencyRepository implements CrudRepository<Currency> {
             return currencies;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            SQLite.closeConnection(statement);
         }
 
     }
@@ -92,7 +93,7 @@ public class CurrencyRepository implements CrudRepository<Currency> {
         final String query = "INSERT INTO currencies (code, fullName, sign) VALUES (?,?,?)";
 
         try {
-            PreparedStatement statement = sqlite.getConnection().prepareStatement(query);
+            PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
 
             statement.setString(1, entity.getCode());
             statement.setString(2, entity.getFullName());
@@ -109,7 +110,7 @@ public class CurrencyRepository implements CrudRepository<Currency> {
         final String query = "UPDATE currencies SET code =?, FullName =?, sign =? WHERE id =?";
 
         try {
-            PreparedStatement statement = sqlite.getConnection().prepareStatement(query);
+            PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
             statement.setString(1, entity.getCode());
             statement.setString(2, entity.getFullName());
             statement.setString(3, entity.getSign());
@@ -126,7 +127,7 @@ public class CurrencyRepository implements CrudRepository<Currency> {
         final String query = "DELETE FROM currencies WHERE id =?";
 
         try {
-            PreparedStatement statement = sqlite.getConnection().prepareStatement(query);
+            PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
             statement.setLong(1, id);
 
             statement.execute();

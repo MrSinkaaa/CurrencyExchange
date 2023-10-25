@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
-
-    private final SQLite sqlite = new SQLite();
     private final CurrencyRepository currencyRepository = new CurrencyRepository();
 
     public ExchangeRatesRepository() {
@@ -24,17 +22,21 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
     public Optional<ExchangeRate> findById(Long id) {
         final String query = "SELECT * FROM exchangeRates WHERE id = ?";
 
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
         try {
-            PreparedStatement preparedStatement = sqlite.getConnection().prepareStatement(query);
-            preparedStatement.setLong(1, id);
+            statement = SQLite.getConnection().prepareStatement(query);
+            statement.setLong(1, id);
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 return Optional.ofNullable(createExchangeRate(resultSet));
             }
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            SQLite.closeConnection(statement, resultSet);
         }
         return Optional.empty();
     }
@@ -45,7 +47,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
-            statement = sqlite.getConnection().prepareStatement(query);
+            statement = SQLite.getConnection().prepareStatement(query);
             statement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
 
             resultSet = statement.executeQuery();
@@ -58,7 +60,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            sqlite.closeConnection(statement, resultSet);
+            SQLite.closeConnection(statement, resultSet);
         }
 
     }
@@ -69,7 +71,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
-            statement = sqlite.getConnection().prepareStatement(query);
+            statement = SQLite.getConnection().prepareStatement(query);
             statement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
             statement.setLong(2, currencyRepository.findByCode(targetCurrencyCode).get().getId());
 
@@ -81,7 +83,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            sqlite.closeConnection(statement, resultSet);
+            SQLite.closeConnection(statement, resultSet);
         }
         return Optional.empty();
     }
@@ -90,10 +92,12 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
     public List<ExchangeRate> findAll() {
         final String query = "SELECT * FROM exchangeRates";
 
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
         try {
-            PreparedStatement preparedStatement = sqlite.getConnection().prepareStatement(query);
+            statement = SQLite.getConnection().prepareStatement(query);
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet = statement.executeQuery();
 
             List<ExchangeRate> exchangeRates = new ArrayList<>();
             while (resultSet.next()) {
@@ -103,6 +107,8 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
             return exchangeRates;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            SQLite.closeConnection(statement, resultSet);
         }
 
     }
@@ -113,7 +119,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
 
         PreparedStatement statement = null;
         try {
-            statement = sqlite.getConnection().prepareStatement(query);
+            statement = SQLite.getConnection().prepareStatement(query);
 
             statement.setLong(1, entity.getBaseCurrency().getId());
             statement.setLong(2, entity.getTargetCurrency().getId());
@@ -123,13 +129,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            SQLite.closeConnection(statement);
         }
     }
 
@@ -137,17 +137,20 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
     public void update(ExchangeRate entity) {
         final String query = "UPDATE exchangeRates SET BaseCurrencyId =?, TargetCurrencyId =?, rate =? WHERE id =?";
 
+        PreparedStatement statement = null;
         try {
-            PreparedStatement preparedStatement = sqlite.getConnection().prepareStatement(query);
+            statement = SQLite.getConnection().prepareStatement(query);
 
-            preparedStatement.setLong(1, entity.getBaseCurrency().getId());
-            preparedStatement.setLong(2, entity.getTargetCurrency().getId());
-            preparedStatement.setDouble(3, entity.getRate());
-            preparedStatement.setLong(4, entity.getId());
-            preparedStatement.executeUpdate();
+            statement.setLong(1, entity.getBaseCurrency().getId());
+            statement.setLong(2, entity.getTargetCurrency().getId());
+            statement.setDouble(3, entity.getRate());
+            statement.setLong(4, entity.getId());
+            statement.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            SQLite.closeConnection(statement);
         }
 
     }
@@ -157,7 +160,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         final String query = "DELETE FROM exchangeRates WHERE id =?";
 
         try {
-            PreparedStatement preparedStatement = sqlite.getConnection().prepareStatement(query);
+            PreparedStatement preparedStatement = SQLite.getConnection().prepareStatement(query);
 
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
