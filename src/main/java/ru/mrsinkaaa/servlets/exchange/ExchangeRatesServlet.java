@@ -6,6 +6,7 @@ import ru.mrsinkaaa.entity.Currency;
 import ru.mrsinkaaa.entity.ExchangeRate;
 import ru.mrsinkaaa.repositories.CurrencyRepository;
 import ru.mrsinkaaa.repositories.ExchangeRatesRepository;
+import ru.mrsinkaaa.service.ServletUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -21,25 +22,15 @@ import java.util.Optional;
 @WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
 
-    private ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
-    private CurrencyRepository currencyRepository = new CurrencyRepository();
+    private final ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
+    private final CurrencyRepository currencyRepository = new CurrencyRepository();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        StringBuffer sb = new StringBuffer();
-        String line = null;
+        StringBuilder requestBody = ServletUtils.readRequestBody(req, resp);
 
         try {
-            BufferedReader br = req.getReader();
-            while((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-        } catch (IOException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid JSON.");
-        }
-
-        try {
-            ArrayList<String> list = new ArrayList<>(List.of(sb.toString().split("&")));
+            ArrayList<String> list = new ArrayList<>(List.of(requestBody.toString().split("&")));
 
             String baseCode = list.get(0).split("=")[1];
             String targetCode = list.get(1).split("=")[1];
@@ -55,6 +46,9 @@ public class ExchangeRatesServlet extends HttpServlet {
             e.printStackTrace();
         }
     }
+
+
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.getWriter().println(new ObjectMapper().writeValueAsString(exchangeRatesRepository.findAll()));

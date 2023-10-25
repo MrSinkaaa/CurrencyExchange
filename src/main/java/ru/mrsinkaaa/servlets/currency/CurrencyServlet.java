@@ -15,7 +15,7 @@ import java.util.Optional;
 @WebServlet("/currency/*")
 public class CurrencyServlet extends HttpServlet {
 
-    private CurrencyRepository currencyRepository = new CurrencyRepository();
+    private final CurrencyRepository currencyRepository = new CurrencyRepository();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
