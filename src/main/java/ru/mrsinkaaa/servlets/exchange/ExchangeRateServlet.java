@@ -17,40 +17,43 @@ public class ExchangeRateServlet extends HttpServlet {
 
     private final ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
 
+
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
-
-        String requestType = req.getMethod();
-        if(requestType.equals("PATCH")) {
-
-            String codes = req.getPathInfo().replaceFirst("/", "").toUpperCase();
-            String baseCode = codes.substring(0, 3);
-            String targetCode = codes.substring(3);
-
-            Optional<ExchangeRate> exchangeRate = exchangeRatesRepository.findByCodes(baseCode, targetCode);
-
-            try {
-                BufferedReader br = req.getReader();
-                String line = br.readLine();
-
-                Double rate = Double.valueOf(line.split("=")[1]);
-
-                exchangeRate.get().setRate(rate);
-                exchangeRatesRepository.save(exchangeRate.get());
-            } catch (IOException e) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON.");
-
-            }
-
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String method = req.getMethod();
+        if (method.equals("PATCH")) {
+            this.doPatch(req, resp);
         }
     }
 
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
+        String codes = req.getPathInfo().replaceFirst("/", "").toUpperCase();
+        String baseCode = codes.substring(0, 3);
+        String targetCode = codes.substring(3);
+
+        Optional<ExchangeRate> exchangeRate = exchangeRatesRepository.findByCodes(baseCode, targetCode);
+
+        try {
+            BufferedReader br = req.getReader();
+            String line = br.readLine();
+
+            Double rate = Double.valueOf(line.split("=")[1]);
+
+            exchangeRate.get().setRate(rate);
+            exchangeRatesRepository.update(exchangeRate.get());
+        } catch (IOException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON.");
+
+        }
+
+    }
+
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
 
-        if(req.getPathInfo() == null || req.getPathInfo().equals("/")) {
+        if (req.getPathInfo() == null || req.getPathInfo().equals("/")) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid currency code. Use /currency/EURRUB");
             return;
         }
@@ -60,7 +63,7 @@ public class ExchangeRateServlet extends HttpServlet {
         String targetCode = codes.substring(3);
 
         Optional<ExchangeRate> exchangeRate = exchangeRatesRepository.findByCodes(baseCode, targetCode);
-        if(exchangeRate.isEmpty()) {
+        if (exchangeRate.isEmpty()) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Currency not found. Use /currency/EURRUB");
             return;
         }

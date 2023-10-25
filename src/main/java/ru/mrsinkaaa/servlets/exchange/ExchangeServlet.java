@@ -22,7 +22,6 @@ public class ExchangeServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
 
         String baseCode = req.getParameter("from");
         String targetCode = req.getParameter("to");

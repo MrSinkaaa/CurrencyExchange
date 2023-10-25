@@ -26,8 +26,6 @@ public class ExchangeRatesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
-
         StringBuffer sb = new StringBuffer();
         String line = null;
 
@@ -59,8 +57,6 @@ public class ExchangeRatesServlet extends HttpServlet {
     }
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
-
         resp.getWriter().println(new ObjectMapper().writeValueAsString(exchangeRatesRepository.findAll()));
     }
 

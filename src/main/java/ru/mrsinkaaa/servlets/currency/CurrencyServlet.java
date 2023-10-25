@@ -19,8 +19,6 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        //Enable CORS(Cross-Origin Resource Sharing)
-        resp.addHeader("Access-Control-Allow-Origin", "*");
 
         //Check if the path is valid
         if(req.getPathInfo() == null || req.getPathInfo().equals("/")) {

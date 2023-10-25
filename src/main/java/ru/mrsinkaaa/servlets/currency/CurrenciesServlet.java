@@ -24,8 +24,6 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
-
         StringBuffer sb = new StringBuffer();
         String line = null;
 
@@ -56,7 +54,6 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
 
         try {
             resp.getWriter().println(new ObjectMapper().writeValueAsString(currencyRepository.findAll().stream().map(currency -> new CurrencyDTO(currency.getCode(), currency.getFullName(), currency.getSign())).toList()));
