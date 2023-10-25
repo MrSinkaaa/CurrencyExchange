@@ -3,9 +3,7 @@ package ru.mrsinkaaa.service;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class SQLite {
 
@@ -37,7 +35,20 @@ public class SQLite {
         return connection;
     }
 
-    public void close() throws SQLException {
-        connection.close();
+    public void closeConnection(PreparedStatement statement, ResultSet resultSet) {
+        if(statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if(resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

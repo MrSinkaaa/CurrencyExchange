@@ -57,20 +57,7 @@ public class CurrencyRepository implements CrudRepository<Currency> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            if(statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if(resultSet != null) {
-                try {
-                    resultSet.close();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            sqlite.closeConnection(statement, resultSet);
         }
 
         return Optional.empty();

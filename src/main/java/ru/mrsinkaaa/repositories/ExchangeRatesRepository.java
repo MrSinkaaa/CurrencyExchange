@@ -42,11 +42,13 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
     public List<ExchangeRate> findByCode(String baseCurrencyCode) {
         final String query = "SELECT * FROM exchangeRates WHERE BaseCurrencyId =?";
 
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
         try {
-            PreparedStatement preparedStatement = sqlite.getConnection().prepareStatement(query);
-            preparedStatement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
+            statement = sqlite.getConnection().prepareStatement(query);
+            statement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet = statement.executeQuery();
             List<ExchangeRate> exchangeRates = new ArrayList<>();
             while (resultSet.next()) {
                 exchangeRates.add(createExchangeRate(resultSet));
@@ -55,6 +57,8 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
             return exchangeRates;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            sqlite.closeConnection(statement, resultSet);
         }
 
     }
@@ -62,18 +66,22 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
     public Optional<ExchangeRate> findByCodes(String baseCurrencyCode, String targetCurrencyCode) {
         final String query = "SELECT * FROM exchangeRates WHERE BaseCurrencyId = ? AND TargetCurrencyId = ?";
 
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
         try {
-            PreparedStatement preparedStatement = sqlite.getConnection().prepareStatement(query);
-            preparedStatement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
-            preparedStatement.setLong(2, currencyRepository.findByCode(targetCurrencyCode).get().getId());
+            statement = sqlite.getConnection().prepareStatement(query);
+            statement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
+            statement.setLong(2, currencyRepository.findByCode(targetCurrencyCode).get().getId());
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 return Optional.ofNullable(createExchangeRate(resultSet));
             }
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            sqlite.closeConnection(statement, resultSet);
         }
         return Optional.empty();
     }
@@ -103,16 +111,25 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
     public void save(ExchangeRate entity) {
         final String query = "INSERT INTO exchangeRates (BaseCurrencyId, TargetCurrencyId, rate) VALUES (?,?,?)";
 
+        PreparedStatement statement = null;
         try {
-            PreparedStatement preparedStatement = sqlite.getConnection().prepareStatement(query);
+            statement = sqlite.getConnection().prepareStatement(query);
 
-            preparedStatement.setLong(1, entity.getBaseCurrency().getId());
-            preparedStatement.setLong(2, entity.getTargetCurrency().getId());
-            preparedStatement.setDouble(3, entity.getRate());
-            preparedStatement.executeUpdate();
+            statement.setLong(1, entity.getBaseCurrency().getId());
+            statement.setLong(2, entity.getTargetCurrency().getId());
+            statement.setDouble(3, entity.getRate());
+            statement.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 

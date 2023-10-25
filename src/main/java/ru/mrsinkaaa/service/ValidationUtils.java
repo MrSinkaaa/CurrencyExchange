@@ -1,5 +1,6 @@
 package ru.mrsinkaaa.service;
 
+import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
 import ru.mrsinkaaa.exceptions.InvalidInputException;
 
 public class ValidationUtils {
@@ -11,6 +12,7 @@ public class ValidationUtils {
             throw new InvalidInputException();
         }
     }
+
     public static void validateExchangeRate(String base, String target, String rate) {
         if(isEmptyField(base, target, rate)) {
             throw new EmptyFormFieldException();
@@ -27,8 +29,17 @@ public class ValidationUtils {
         }
     }
 
+    private static boolean isValidArgs(String from, String to) {
+        return false;
+    }
+
     private static boolean isEmptyField(String arg1, String arg2, String arg3) {
         return arg1.isEmpty() || arg2.isEmpty() || arg3.isEmpty();
     }
+
+    private static boolean isValid(String code, String name, String sign) {
+        return false;
+    }
+
 
 }
