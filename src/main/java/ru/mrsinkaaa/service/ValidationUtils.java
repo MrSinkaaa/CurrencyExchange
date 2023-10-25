@@ -16,7 +16,7 @@ public class ValidationUtils {
     public static void validateExchangeRate(String base, String target, String rate) {
         if(isEmptyField(base, target, rate)) {
             throw new EmptyFormFieldException();
-        } else if(!isValidArgs(base, target)) {
+        } else if(isNotValidArgs(base, target)) {
             throw new InvalidInputException();
         }
     }
@@ -24,12 +24,12 @@ public class ValidationUtils {
     public static void validateExchange(String from, String to, String amount) {
         if(isEmptyField(from, to, amount)) {
             throw new EmptyFormFieldException();
-        } else if(!isValidArgs(from, to)) {
+        } else if(isNotValidArgs(from, to)) {
             throw new InvalidInputException();
         }
     }
 
-    private static boolean isValidArgs(String from, String to) {
+    private static boolean isNotValidArgs(String from, String to) {
         return false;
     }
 
