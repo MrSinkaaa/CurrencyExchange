@@ -1,8 +1,8 @@
 package ru.mrsinkaaa.exceptions;
 
-public class InvalidInputException extends RuntimeException {
+public class InvalidInputException extends ApplicationException {
 
     public InvalidInputException() {
-        super("Input data is invalid");
+        super(ErrorMessage.INVALID_DATA);
     }
 }

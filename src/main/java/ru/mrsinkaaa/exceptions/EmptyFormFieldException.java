@@ -1,8 +1,9 @@
 package ru.mrsinkaaa.exceptions;
 
-public class EmptyFormFieldException extends RuntimeException {
+public class EmptyFormFieldException extends ApplicationException {
+
 
     public EmptyFormFieldException() {
-        super("Required form field is missing");
+        super(ErrorMessage.EMPTY_FORM_FIELD);
     }
 }
