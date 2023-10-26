@@ -3,18 +3,19 @@ package ru.mrsinkaaa.repositories;
 import ru.mrsinkaaa.dto.CurrencyDTO;
 import ru.mrsinkaaa.entity.Currency;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 public interface CrudRepository<T> {
 
-    Optional<T> findById(Long id);
+    Optional<T> findById(Long id) throws SQLException;
 
-    List<T> findAll() throws ClassNotFoundException;
+    List<T> findAll() throws ClassNotFoundException, SQLException;
 
-    void save(T entity);
+    void save(T entity) throws SQLException;
 
-    void update(T entity);
+    void update(T entity) throws SQLException;
 
-    void delete(Long id);
+    void delete(Long id) throws SQLException;
 }

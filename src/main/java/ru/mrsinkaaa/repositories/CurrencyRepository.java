@@ -15,47 +15,31 @@ public class CurrencyRepository implements CrudRepository<Currency> {
     }
 
     @Override
-    public Optional<Currency> findById(Long id) {
+    public Optional<Currency> findById(Long id) throws SQLException {
         final String query = "SELECT * FROM currencies WHERE id = ?";
 
-        try {
-            PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
-            statement.setLong(1, id);
-            statement.execute();
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
+        statement.setLong(1, id);
+        statement.execute();
 
-            ResultSet resultSet = statement.getResultSet();
-            if (resultSet.next()) {
-                return Optional.ofNullable(createCurrency(resultSet));
-            }
-
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        ResultSet resultSet = statement.getResultSet();
+        if (resultSet.next()) {
+            return Optional.ofNullable(createCurrency(resultSet));
         }
 
         return Optional.empty();
     }
 
-    public Optional<Currency> findByCode(String code) {
+    public Optional<Currency> findByCode(String code) throws SQLException {
         final String query = "SELECT * FROM currencies WHERE code = ?";
 
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = SQLite.getConnection().prepareStatement(query);
-            statement.setString(1, code);
-            statement.execute();
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
+        statement.setString(1, code);
+        statement.execute();
 
-            resultSet = statement.getResultSet();
-            if (resultSet.next()) {
-                return Optional.ofNullable(createCurrency(resultSet));
-            }
-
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            SQLite.closeConnection(statement, resultSet);
+        ResultSet resultSet = statement.getResultSet();
+        if (resultSet.next()) {
+            return Optional.ofNullable(createCurrency(resultSet));
         }
 
         return Optional.empty();
@@ -63,77 +47,58 @@ public class CurrencyRepository implements CrudRepository<Currency> {
 
 
     @Override
-    public List<Currency> findAll() {
+    public List<Currency> findAll() throws SQLException {
         final String query = "SELECT * FROM currencies";
 
-        PreparedStatement statement = null;
-        try {
-            statement = SQLite.getConnection().prepareStatement(query);
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
 
-            statement.execute();
+        statement.execute();
 
-            List<Currency> currencies = new ArrayList<>();
+        List<Currency> currencies = new ArrayList<>();
 
-            ResultSet resultSet = statement.getResultSet();
-            while (resultSet.next()) {
-                currencies.add(createCurrency(resultSet));
-            }
-
-            return currencies;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            SQLite.closeConnection(statement);
+        ResultSet resultSet = statement.getResultSet();
+        while (resultSet.next()) {
+            currencies.add(createCurrency(resultSet));
         }
 
+        return currencies;
     }
 
     @Override
-    public void save(Currency entity) {
+    public void save(Currency entity) throws SQLException {
         final String query = "INSERT INTO currencies (code, fullName, sign) VALUES (?,?,?)";
 
-        try {
-            PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
 
-            statement.setString(1, entity.getCode());
-            statement.setString(2, entity.getFullName());
-            statement.setString(3, entity.getSign());
+        statement.setString(1, entity.getCode());
+        statement.setString(2, entity.getFullName());
+        statement.setString(3, entity.getSign());
 
-            statement.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        statement.execute();
     }
 
     @Override
-    public void update(Currency entity) {
+    public void update(Currency entity) throws SQLException {
         final String query = "UPDATE currencies SET code =?, FullName =?, sign =? WHERE id =?";
 
-        try {
-            PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
-            statement.setString(1, entity.getCode());
-            statement.setString(2, entity.getFullName());
-            statement.setString(3, entity.getSign());
-            statement.setLong(4, entity.getId());
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
+        statement.setString(1, entity.getCode());
+        statement.setString(2, entity.getFullName());
+        statement.setString(3, entity.getSign());
+        statement.setLong(4, entity.getId());
 
-            statement.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        statement.execute();
+
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id) throws SQLException {
         final String query = "DELETE FROM currencies WHERE id =?";
 
-        try {
-            PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
-            statement.setLong(1, id);
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
+        statement.setLong(1, id);
 
-            statement.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        statement.execute();
     }
 
     private Currency createCurrency(ResultSet resultSet) {

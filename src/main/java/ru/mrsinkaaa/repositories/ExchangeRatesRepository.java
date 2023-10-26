@@ -15,159 +15,101 @@ import java.util.Optional;
 public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
     private final CurrencyRepository currencyRepository = new CurrencyRepository();
 
-    public ExchangeRatesRepository() {
-    }
-
     @Override
-    public Optional<ExchangeRate> findById(Long id) {
+    public Optional<ExchangeRate> findById(Long id) throws SQLException {
         final String query = "SELECT * FROM exchangeRates WHERE id = ?";
 
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = SQLite.getConnection().prepareStatement(query);
-            statement.setLong(1, id);
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
+        statement.setLong(1, id);
 
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return Optional.ofNullable(createExchangeRate(resultSet));
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            SQLite.closeConnection(statement, resultSet);
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            return Optional.ofNullable(createExchangeRate(resultSet));
         }
+
         return Optional.empty();
     }
 
-    public List<ExchangeRate> findByCode(String baseCurrencyCode) {
+    public List<ExchangeRate> findByCode(String baseCurrencyCode) throws SQLException {
         final String query = "SELECT * FROM exchangeRates WHERE BaseCurrencyId =?";
 
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = SQLite.getConnection().prepareStatement(query);
-            statement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
+        statement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
 
-            resultSet = statement.executeQuery();
-            List<ExchangeRate> exchangeRates = new ArrayList<>();
-            while (resultSet.next()) {
-                exchangeRates.add(createExchangeRate(resultSet));
-            }
-
-            return exchangeRates;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            SQLite.closeConnection(statement, resultSet);
+        ResultSet resultSet = statement.executeQuery();
+        List<ExchangeRate> exchangeRates = new ArrayList<>();
+        while (resultSet.next()) {
+            exchangeRates.add(createExchangeRate(resultSet));
         }
 
+        return exchangeRates;
     }
 
-    public Optional<ExchangeRate> findByCodes(String baseCurrencyCode, String targetCurrencyCode) {
+    public Optional<ExchangeRate> findByCodes(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
         final String query = "SELECT * FROM exchangeRates WHERE BaseCurrencyId = ? AND TargetCurrencyId = ?";
 
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = SQLite.getConnection().prepareStatement(query);
-            statement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
-            statement.setLong(2, currencyRepository.findByCode(targetCurrencyCode).get().getId());
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
+        statement.setLong(1, currencyRepository.findByCode(baseCurrencyCode).get().getId());
+        statement.setLong(2, currencyRepository.findByCode(targetCurrencyCode).get().getId());
 
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return Optional.ofNullable(createExchangeRate(resultSet));
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            SQLite.closeConnection(statement, resultSet);
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            return Optional.ofNullable(createExchangeRate(resultSet));
         }
+
         return Optional.empty();
     }
 
     @Override
-    public List<ExchangeRate> findAll() {
+    public List<ExchangeRate> findAll() throws SQLException {
         final String query = "SELECT * FROM exchangeRates";
 
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = SQLite.getConnection().prepareStatement(query);
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
 
-            resultSet = statement.executeQuery();
+        ResultSet resultSet = statement.executeQuery();
 
-            List<ExchangeRate> exchangeRates = new ArrayList<>();
-            while (resultSet.next()) {
-                exchangeRates.add(createExchangeRate(resultSet));
-            }
-
-            return exchangeRates;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            SQLite.closeConnection(statement, resultSet);
+        List<ExchangeRate> exchangeRates = new ArrayList<>();
+        while (resultSet.next()) {
+            exchangeRates.add(createExchangeRate(resultSet));
         }
 
+        return exchangeRates;
     }
 
     @Override
-    public void save(ExchangeRate entity) {
+    public void save(ExchangeRate entity) throws SQLException {
         final String query = "INSERT INTO exchangeRates (BaseCurrencyId, TargetCurrencyId, rate) VALUES (?,?,?)";
 
-        PreparedStatement statement = null;
-        try {
-            statement = SQLite.getConnection().prepareStatement(query);
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
 
-            statement.setLong(1, entity.getBaseCurrency().getId());
-            statement.setLong(2, entity.getTargetCurrency().getId());
-            statement.setDouble(3, entity.getRate());
-            statement.executeUpdate();
+        statement.setLong(1, entity.getBaseCurrency().getId());
+        statement.setLong(2, entity.getTargetCurrency().getId());
+        statement.setDouble(3, entity.getRate());
+        statement.executeUpdate();
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            SQLite.closeConnection(statement);
-        }
     }
 
     @Override
-    public void update(ExchangeRate entity) {
+    public void update(ExchangeRate entity) throws SQLException {
         final String query = "UPDATE exchangeRates SET BaseCurrencyId =?, TargetCurrencyId =?, rate =? WHERE id =?";
 
-        PreparedStatement statement = null;
-        try {
-            statement = SQLite.getConnection().prepareStatement(query);
+        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
 
-            statement.setLong(1, entity.getBaseCurrency().getId());
-            statement.setLong(2, entity.getTargetCurrency().getId());
-            statement.setDouble(3, entity.getRate());
-            statement.setLong(4, entity.getId());
-            statement.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            SQLite.closeConnection(statement);
-        }
-
+        statement.setLong(1, entity.getBaseCurrency().getId());
+        statement.setLong(2, entity.getTargetCurrency().getId());
+        statement.setDouble(3, entity.getRate());
+        statement.setLong(4, entity.getId());
+        statement.executeUpdate();
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(Long id) throws SQLException {
         final String query = "DELETE FROM exchangeRates WHERE id =?";
 
-        try {
-            PreparedStatement preparedStatement = SQLite.getConnection().prepareStatement(query);
+        PreparedStatement preparedStatement = SQLite.getConnection().prepareStatement(query);
 
-            preparedStatement.setLong(1, id);
-            preparedStatement.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        preparedStatement.setLong(1, id);
+        preparedStatement.executeUpdate();
     }
 
     private ExchangeRate createExchangeRate(ResultSet resultSet) {
