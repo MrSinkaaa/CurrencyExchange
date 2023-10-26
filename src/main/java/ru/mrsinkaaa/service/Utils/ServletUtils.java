@@ -1,4 +1,4 @@
-package ru.mrsinkaaa.service;
+package ru.mrsinkaaa.service.Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
