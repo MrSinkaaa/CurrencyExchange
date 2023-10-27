@@ -3,8 +3,8 @@ package ru.mrsinkaaa.entity;
 public class ExchangeRate {
 
     private Long id;
-    private final Currency baseCurrency;
-    private final Currency targetCurrency;
+    private Currency baseCurrency;
+    private Currency targetCurrency;
     private Double rate;
 
     public ExchangeRate(Long id, Currency baseCurrency, Currency targetCurrency, Double rate) {
@@ -39,5 +39,17 @@ public class ExchangeRate {
 
     public void setRate(Double rate) {
         this.rate = rate;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setBaseCurrency(Currency baseCurrency) {
+        this.baseCurrency = baseCurrency;
+    }
+
+    public void setTargetCurrency(Currency targetCurrency) {
+        this.targetCurrency = targetCurrency;
     }
 }
