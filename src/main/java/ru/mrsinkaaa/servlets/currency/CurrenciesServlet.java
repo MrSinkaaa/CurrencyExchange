@@ -34,9 +34,6 @@ public class CurrenciesServlet extends HttpServlet {
 
         } catch (CurrencyAlreadyExistException | EmptyFormFieldException | InvalidInputException e) {
             resp.sendError(e.getError().getStatus(), e.getError().getMessage());
-        } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database unavailable");
-
         }
 
     }

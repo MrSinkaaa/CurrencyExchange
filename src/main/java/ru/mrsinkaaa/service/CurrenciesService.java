@@ -43,12 +43,13 @@ public class CurrenciesService {
         return currencyRepository.findAll();
     }
 
-    public void save(Currency currency) throws CurrencyAlreadyExistException, InvalidInputException, EmptyFormFieldException, SQLException {
+    public void save(Currency currency) throws InvalidInputException, EmptyFormFieldException, CurrencyAlreadyExistException {
         ValidationUtils.validateCurrency(currency.getCode(), currency.getFullName(), currency.getSign());
 
-        if(currencyRepository.findByCode(currency.getCode()).isPresent()) {
+        try {
+            currencyRepository.save(currency);
+        } catch (SQLException e) {
             throw new CurrencyAlreadyExistException();
         }
-        currencyRepository.save(currency);
     }
 }

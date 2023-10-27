@@ -53,7 +53,7 @@ public class ExchangeRatesService {
         }
     }
 
-    public void save(String baseCurrencyCode, String targetCurrencyCode, String rates) throws SQLException, EmptyFormFieldException, CurrencyNotFoundException, InvalidInputException, ExchangeRatesAlreadyExistException {
+    public void save(String baseCurrencyCode, String targetCurrencyCode, String rates) throws ExchangeRatesAlreadyExistException, EmptyFormFieldException, CurrencyNotFoundException, InvalidInputException, SQLException {
         ValidationUtils.validateExchangeRate(baseCurrencyCode, targetCurrencyCode, rates);
 
         Currency baseCurrency = currenciesService.findByCode(baseCurrencyCode);
@@ -61,11 +61,12 @@ public class ExchangeRatesService {
         double rate = Double.parseDouble(rates);
 
         ExchangeRate exchangeRate = new ExchangeRate(baseCurrency, targetCurrency, rate);
-        if(exchangeRatesRepository.findByCodes(baseCurrencyCode, targetCurrencyCode).isPresent()) {
+
+        try {
+            exchangeRatesRepository.save(exchangeRate);
+        } catch (SQLException e) {
             throw new ExchangeRatesAlreadyExistException();
         }
-
-        exchangeRatesRepository.save(exchangeRate);
     }
 
     public void update(String baseCurrencyCode, String targetCurrencyCode, String rates) throws SQLException, EmptyFormFieldException, InvalidInputException, ExchangeRatesNotFoundException {
