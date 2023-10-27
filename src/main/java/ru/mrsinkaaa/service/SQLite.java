@@ -1,11 +1,5 @@
 package ru.mrsinkaaa.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.*;
 
 public class SQLite {
@@ -27,30 +21,4 @@ public class SQLite {
         return connection;
     }
 
-    public static void closeConnection(PreparedStatement statement, ResultSet resultSet) {
-        if(statement != null) {
-            try {
-                statement.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        if(resultSet != null) {
-            try {
-                resultSet.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public static void closeConnection(PreparedStatement statement) {
-        if(statement != null) {
-            try {
-                statement.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 }

@@ -3,9 +3,9 @@ package ru.mrsinkaaa.entity;
 public class Currency {
 
     private Long id;
-    private String code;
-    private String fullName;
-    private String sign;
+    private final String code;
+    private final String fullName;
+    private final String sign;
 
     public Currency(Long id, String code, String fullName, String sign) {
         this.id = id;
@@ -24,32 +24,16 @@ public class Currency {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getCode() {
         return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
     }
 
     public String getFullName() {
         return fullName;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
     public String getSign() {
         return sign;
-    }
-
-    public void setSign(String sign) {
-        this.sign = sign;
     }
 
     @Override

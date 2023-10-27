@@ -5,6 +5,6 @@ import ru.mrsinkaaa.exceptions.ErrorMessage;
 
 public class CurrencyAlreadyExistException extends ApplicationException {
     public CurrencyAlreadyExistException() {
-        super(ErrorMessage.ALREADY_EXISTS);
+        super(ErrorMessage.CURRENCY_ALREADY_EXISTS);
     }
 }

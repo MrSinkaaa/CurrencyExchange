@@ -6,7 +6,6 @@ import ru.mrsinkaaa.exceptions.currency.CurrencyNotFoundException;
 import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
 import ru.mrsinkaaa.exceptions.InvalidInputException;
 import ru.mrsinkaaa.repositories.CurrencyRepository;
-import ru.mrsinkaaa.service.Utils.ValidationUtils;
 
 import java.sql.SQLException;
 import java.util.List;

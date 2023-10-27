@@ -1,18 +1,11 @@
 package ru.mrsinkaaa.servlets.exchange;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
-import ru.mrsinkaaa.entity.Currency;
-import ru.mrsinkaaa.entity.ExchangeRate;
 import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
 import ru.mrsinkaaa.exceptions.InvalidInputException;
 import ru.mrsinkaaa.exceptions.currency.CurrencyNotFoundException;
 import ru.mrsinkaaa.exceptions.exchange.ExchangeRatesAlreadyExistException;
-import ru.mrsinkaaa.repositories.CurrencyRepository;
-import ru.mrsinkaaa.repositories.ExchangeRatesRepository;
-import ru.mrsinkaaa.service.CurrenciesService;
 import ru.mrsinkaaa.service.ExchangeRatesService;
-import ru.mrsinkaaa.service.Utils.ServletUtils;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 @WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
@@ -30,14 +21,10 @@ public class ExchangeRatesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        StringBuilder requestBody = ServletUtils.readRequestBody(req, resp);
-
         try {
-            ArrayList<String> list = new ArrayList<>(List.of(requestBody.toString().split("&")));
-
-            String baseCode = list.get(0).split("=")[1];
-            String targetCode = list.get(1).split("=")[1];
-            String rate = list.get(2).split("=")[1];
+            String baseCode = req.getParameter("baseCurrencyCode");
+            String targetCode = req.getParameter("targetCurrencyCode");
+            String rate = req.getParameter("rate");
 
             exchangeRatesService.save(baseCode, targetCode, rate);
 

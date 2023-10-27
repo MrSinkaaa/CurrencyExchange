@@ -8,7 +8,6 @@ import ru.mrsinkaaa.exceptions.currency.CurrencyNotFoundException;
 import ru.mrsinkaaa.exceptions.exchange.ExchangeRatesAlreadyExistException;
 import ru.mrsinkaaa.exceptions.exchange.ExchangeRatesNotFoundException;
 import ru.mrsinkaaa.repositories.ExchangeRatesRepository;
-import ru.mrsinkaaa.service.Utils.ValidationUtils;
 
 import java.sql.SQLException;
 import java.util.List;

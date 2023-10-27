@@ -1,6 +1,5 @@
 package ru.mrsinkaaa.repositories;
 
-import ru.mrsinkaaa.dto.CurrencyDTO;
 import ru.mrsinkaaa.service.SQLite;
 import ru.mrsinkaaa.entity.Currency;
 
@@ -10,9 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class CurrencyRepository implements CrudRepository<Currency> {
-
-    public CurrencyRepository() {
-    }
 
     @Override
     public Optional<Currency> findById(Long id) throws SQLException {
@@ -91,22 +87,12 @@ public class CurrencyRepository implements CrudRepository<Currency> {
 
     }
 
-    @Override
-    public void delete(Long id) throws SQLException {
-        final String query = "DELETE FROM currencies WHERE id =?";
-
-        PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
-        statement.setLong(1, id);
-
-        statement.execute();
-    }
-
     private Currency createCurrency(ResultSet resultSet) {
         try {
             return new Currency(
                     resultSet.getLong("id"),
                     resultSet.getString("code"),
-                    resultSet.getString("fullname"),
+                    resultSet.getString("fullName"),
                     resultSet.getString("sign")
             );
         } catch (SQLException e) {

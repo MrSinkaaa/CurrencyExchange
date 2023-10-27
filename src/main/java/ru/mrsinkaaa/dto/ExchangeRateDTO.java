@@ -8,7 +8,7 @@ public class ExchangeRateDTO {
     private Currency targetCurrency;
     private double rate;
     private double amount;
-    private double convertedAmount;
+    private final double convertedAmount;
 
     public ExchangeRateDTO(Currency baseCurrency, Currency targetCurrency, double rate, double amount, double convertedAmount) {
         this.baseCurrency = baseCurrency;
@@ -54,7 +54,4 @@ public class ExchangeRateDTO {
         return convertedAmount;
     }
 
-    public void setConvertedAmount(double convertedAmount) {
-        this.convertedAmount = convertedAmount;
-    }
 }

@@ -3,21 +3,22 @@ package ru.mrsinkaaa.servlets.exchange;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.mrsinkaaa.dto.ExchangeRateDTO;
 import ru.mrsinkaaa.entity.ExchangeRate;
-import ru.mrsinkaaa.repositories.CurrencyRepository;
-import ru.mrsinkaaa.repositories.ExchangeRatesRepository;
+import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
+import ru.mrsinkaaa.exceptions.InvalidInputException;
+import ru.mrsinkaaa.exceptions.exchange.ExchangeRatesNotFoundException;
+import ru.mrsinkaaa.service.ExchangeRatesService;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
 @WebServlet("/exchange")
 public class ExchangeServlet extends HttpServlet {
-    private final ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
+    private final ExchangeRatesService exchangeRatesService = new ExchangeRatesService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -26,50 +27,63 @@ public class ExchangeServlet extends HttpServlet {
         String targetCode = req.getParameter("to");
         double amount = Double.parseDouble(req.getParameter("amount"));
 
-        Optional<ExchangeRate> exchangeRate = exchangeRatesRepository.findByCodes(baseCode, targetCode);
+        ExchangeRate exchangeRate;
+        try {
 
-        if(exchangeRate.isPresent()) {
-            sendResponse(resp, convertExchangeRates(exchangeRate, amount));
+            try {
+                exchangeRate = exchangeRatesService.findByCodes(baseCode, targetCode);
 
-        } else {
-            exchangeRate = exchangeRatesRepository.findByCodes(targetCode, baseCode);
+                sendResponse(resp, convertExchangeRates(exchangeRate, amount));
+            } catch (ExchangeRatesNotFoundException e) {
 
-            if(exchangeRate.isPresent()) {
-                sendResponse(resp, convertReversedExchangeRates(exchangeRate, amount));
+                try {
+                    exchangeRate = exchangeRatesService.findByCodes(targetCode, baseCode);
 
-            } else {
-                List<ExchangeRate> exchangeRatesOfBaseCode = exchangeRatesRepository.findByCode(baseCode);
-                List<ExchangeRate> allRates = exchangeRatesRepository.findAll();
-
-                Optional<ExchangeRate> generalRates;
-                if(exchangeRatesOfBaseCode.isEmpty()) {
-                    exchangeRatesOfBaseCode = exchangeRatesRepository.findByCode(targetCode);
-
-                    generalRates = getGeneralRates(exchangeRatesOfBaseCode, allRates, baseCode);
-                    double generalAmount = convertReversedExchangeRates(generalRates, amount).getConvertedAmount();
-
-                    Optional<ExchangeRate> generalToTarget = exchangeRatesRepository.findByCodes(generalRates.get().getTargetCurrency().getCode(), baseCode);
-                    sendResponse(resp, convertReversedExchangeRates(generalToTarget, generalAmount));
-                } else {
-                    generalRates = getGeneralRates(exchangeRatesOfBaseCode, allRates, targetCode);
-
-                    double generalAmount = convertExchangeRates(generalRates, amount).getConvertedAmount();
-
-                    Optional<ExchangeRate> generalToTarget = exchangeRatesRepository.findByCodes(generalRates.get().getTargetCurrency().getCode(), targetCode);
-                    sendResponse(resp, convertExchangeRates(generalToTarget, generalAmount));
+                    sendResponse(resp, convertReversedExchangeRates(exchangeRate, amount));
+                } catch (ExchangeRatesNotFoundException error) {
+                    sendResponse(resp, convertCrossExchangeRates(baseCode, targetCode, amount));
                 }
-
             }
 
+        } catch (InvalidInputException | EmptyFormFieldException | ExchangeRatesNotFoundException e) {
+            resp.sendError(e.getError().getStatus(), e.getError().getMessage());
+        } catch (SQLException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database unavailable");
         }
     }
 
-    private static Optional<ExchangeRate> getGeneralRates(List<ExchangeRate> exchangeRatesOfBaseCode, List<ExchangeRate> allRates, String targetCode) {
-        Optional<ExchangeRate> generalRates = Optional.empty();
-        for(ExchangeRate base : exchangeRatesOfBaseCode) {
-            for(ExchangeRate all : allRates) {
-                if(base.getTargetCurrency().getCode().equals(all.getBaseCurrency().getCode()) && all.getTargetCurrency().getCode().equals(targetCode)) {
-                    generalRates = Optional.of(base);
+    private ExchangeRateDTO convertCrossExchangeRates(String baseCode, String targetCode, double amount) throws SQLException {
+        List<ExchangeRate> exchangeRatesOfBaseCode;
+        List<ExchangeRate> allRates = exchangeRatesService.findAll();
+
+        ExchangeRate generalRates;
+        try {
+            exchangeRatesOfBaseCode = exchangeRatesService.findByCode(baseCode);
+
+            generalRates = getGeneralRates(exchangeRatesOfBaseCode, allRates, targetCode);
+
+            double generalAmount = convertExchangeRates(generalRates, amount).getConvertedAmount();
+
+            ExchangeRate generalToTarget = exchangeRatesService.findByCodes(generalRates.getTargetCurrency().getCode(), targetCode);
+            return convertExchangeRates(generalToTarget, generalAmount);
+        } catch (ExchangeRatesNotFoundException e) {
+            exchangeRatesOfBaseCode = exchangeRatesService.findByCode(targetCode);
+
+            generalRates = getGeneralRates(exchangeRatesOfBaseCode, allRates, baseCode);
+
+            double generalAmount = convertReversedExchangeRates(generalRates, amount).getConvertedAmount();
+
+            ExchangeRate generalToTarget = exchangeRatesService.findByCodes(generalRates.getTargetCurrency().getCode(), baseCode);
+            return convertReversedExchangeRates(generalToTarget, generalAmount);
+        }
+    }
+
+    private ExchangeRate getGeneralRates(List<ExchangeRate> exchangeRatesOfBaseCode, List<ExchangeRate> allRates, String targetCode) {
+        ExchangeRate generalRates = null;
+        for (ExchangeRate base : exchangeRatesOfBaseCode) {
+            for (ExchangeRate all : allRates) {
+                if (base.getTargetCurrency().getCode().equals(all.getBaseCurrency().getCode()) && all.getTargetCurrency().getCode().equals(targetCode)) {
+                    generalRates = base;
                     break;
                 }
             }
@@ -77,30 +91,30 @@ public class ExchangeServlet extends HttpServlet {
         return generalRates;
     }
 
-    private ExchangeRateDTO convertReversedExchangeRates(Optional<ExchangeRate> exchangeRate, double amount) {
-        double convertedAmount = toFixed(amount / exchangeRate.get().getRate(), 2);
+    private ExchangeRateDTO convertReversedExchangeRates(ExchangeRate exchangeRate, double amount) {
+        double convertedAmount = toFixed(amount / exchangeRate.getRate());
 
         return new ExchangeRateDTO(
-                exchangeRate.get().getTargetCurrency(),
-                exchangeRate.get().getBaseCurrency(),
-                exchangeRate.get().getRate(),
+                exchangeRate.getTargetCurrency(),
+                exchangeRate.getBaseCurrency(),
+                exchangeRate.getRate(),
                 amount,
                 convertedAmount);
     }
 
-    private ExchangeRateDTO convertExchangeRates(Optional<ExchangeRate> exchangeRate, double amount) {
-        double convertedAmount = toFixed(exchangeRate.get().getRate() * amount, 2);
+    private ExchangeRateDTO convertExchangeRates(ExchangeRate exchangeRate, double amount) {
+        double convertedAmount = toFixed(exchangeRate.getRate() * amount);
 
         return new ExchangeRateDTO(
-                exchangeRate.get().getBaseCurrency(),
-                exchangeRate.get().getTargetCurrency(),
-                exchangeRate.get().getRate(),
+                exchangeRate.getBaseCurrency(),
+                exchangeRate.getTargetCurrency(),
+                exchangeRate.getRate(),
                 amount,
                 convertedAmount);
     }
 
-    private double toFixed(double number, int digits) {
-        double scale = Math.pow(10, digits);
+    private double toFixed(double number) {
+        double scale = Math.pow(10, 2);
         return Math.round(number * scale) / scale;
     }
 
