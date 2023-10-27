@@ -7,6 +7,7 @@ import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
 import ru.mrsinkaaa.exceptions.InvalidInputException;
 import ru.mrsinkaaa.exceptions.exchange.ExchangeRatesNotFoundException;
 import ru.mrsinkaaa.service.ExchangeRatesService;
+import ru.mrsinkaaa.service.ValidationUtils;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -25,23 +26,29 @@ public class ExchangeServlet extends HttpServlet {
 
         String baseCode = req.getParameter("from");
         String targetCode = req.getParameter("to");
-        double amount = Double.parseDouble(req.getParameter("amount"));
+        String amount = req.getParameter("amount");
 
         ExchangeRate exchangeRate;
         try {
+            ValidationUtils.validateExchangeRate(baseCode, targetCode, amount);
+            double parsedAmount = Double.parseDouble(amount);
+
+            if(baseCode.equals(targetCode)) {
+                throw new ExchangeRatesNotFoundException();
+            }
 
             try {
                 exchangeRate = exchangeRatesService.findByCodes(baseCode, targetCode);
 
-                sendResponse(resp, convertExchangeRates(exchangeRate, amount));
+                sendResponse(resp, convertExchangeRates(exchangeRate, parsedAmount));
             } catch (ExchangeRatesNotFoundException e) {
 
                 try {
                     exchangeRate = exchangeRatesService.findByCodes(targetCode, baseCode);
 
-                    sendResponse(resp, convertReversedExchangeRates(exchangeRate, amount));
+                    sendResponse(resp, convertReversedExchangeRates(exchangeRate, parsedAmount));
                 } catch (ExchangeRatesNotFoundException error) {
-                    sendResponse(resp, convertCrossExchangeRates(baseCode, targetCode, amount));
+                    sendResponse(resp, convertCrossExchangeRates(baseCode, targetCode, parsedAmount));
                 }
             }
 

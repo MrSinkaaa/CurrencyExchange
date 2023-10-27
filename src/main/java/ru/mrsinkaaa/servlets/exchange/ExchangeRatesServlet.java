@@ -26,6 +26,10 @@ public class ExchangeRatesServlet extends HttpServlet {
             String targetCode = req.getParameter("targetCurrencyCode");
             String rate = req.getParameter("rate");
 
+            if(baseCode.equals(targetCode)) {
+                throw new InvalidInputException();
+            }
+
             exchangeRatesService.save(baseCode, targetCode, rate);
 
         } catch (InvalidInputException | ExchangeRatesAlreadyExistException | CurrencyNotFoundException | EmptyFormFieldException e) {
