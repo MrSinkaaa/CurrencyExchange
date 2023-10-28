@@ -1,5 +1,7 @@
 package ru.mrsinkaaa.service;
 
+import org.modelmapper.ModelMapper;
+import ru.mrsinkaaa.dto.CurrencyDTO;
 import ru.mrsinkaaa.entity.Currency;
 import ru.mrsinkaaa.exceptions.currency.CurrencyAlreadyExistException;
 import ru.mrsinkaaa.exceptions.currency.CurrencyNotFoundException;
@@ -14,17 +16,18 @@ import java.util.Optional;
 public class CurrenciesService {
 
     private final CurrencyRepository currencyRepository = new CurrencyRepository();
+    private final ModelMapper modelMapper = new ModelMapper();
 
-    public Currency findById(Long id) throws SQLException {
+    public CurrencyDTO findById(Long id) throws SQLException {
 
         Optional<Currency> currency = currencyRepository.findById(id);
         if(currency.isPresent()) {
-            return currency.get();
+            return modelMapper.map(currency.get(), CurrencyDTO.class);
         } else {
             throw new CurrencyNotFoundException();
         }
     }
-    public Currency findByCode(String code) throws InvalidInputException, CurrencyNotFoundException, EmptyFormFieldException, SQLException {
+    public CurrencyDTO findByCode(String code) throws InvalidInputException, CurrencyNotFoundException, EmptyFormFieldException, SQLException {
         if(code.isEmpty()) {
             throw new EmptyFormFieldException();
         } else if(code.length() != 3) {
@@ -33,14 +36,15 @@ public class CurrenciesService {
 
         Optional<Currency> currency = currencyRepository.findByCode(code);
         if(currency.isPresent()) {
-            return currency.get();
+            return modelMapper.map(currency.get(), CurrencyDTO.class);
         } else {
             throw new CurrencyNotFoundException();
         }
     }
 
-    public List<Currency> findAll() throws SQLException {
-        return currencyRepository.findAll();
+    public List<CurrencyDTO> findAll() throws SQLException {
+        return currencyRepository.findAll().stream().map(currency ->
+                modelMapper.map(currency, CurrencyDTO.class)).toList();
     }
 
     public void save(Currency currency) throws InvalidInputException, EmptyFormFieldException, CurrencyAlreadyExistException {

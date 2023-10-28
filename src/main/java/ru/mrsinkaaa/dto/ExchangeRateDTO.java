@@ -1,36 +1,34 @@
 package ru.mrsinkaaa.dto;
 
-import ru.mrsinkaaa.entity.Currency;
-
 public class ExchangeRateDTO {
 
-    private Currency baseCurrency;
-    private Currency targetCurrency;
+    private long id;
+    private CurrencyDTO baseCurrency;
+    private CurrencyDTO targetCurrency;
     private double rate;
-    private double amount;
-    private final double convertedAmount;
 
-    public ExchangeRateDTO(Currency baseCurrency, Currency targetCurrency, double rate, double amount, double convertedAmount) {
+    public ExchangeRateDTO() {}
+
+    public ExchangeRateDTO(long id, CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, double rate) {
+        this.id = id;
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
         this.rate = rate;
-        this.amount = amount;
-        this.convertedAmount = convertedAmount;
     }
 
-    public Currency getBaseCurrency() {
+    public CurrencyDTO getBaseCurrency() {
         return baseCurrency;
     }
 
-    public void setBaseCurrency(Currency baseCurrency) {
+    public void setBaseCurrency(CurrencyDTO baseCurrency) {
         this.baseCurrency = baseCurrency;
     }
 
-    public Currency getTargetCurrency() {
+    public CurrencyDTO getTargetCurrency() {
         return targetCurrency;
     }
 
-    public void setTargetCurrency(Currency targetCurrency) {
+    public void setTargetCurrency(CurrencyDTO targetCurrency) {
         this.targetCurrency = targetCurrency;
     }
 
@@ -40,18 +38,6 @@ public class ExchangeRateDTO {
 
     public void setRate(double rate) {
         this.rate = rate;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public double getConvertedAmount() {
-        return convertedAmount;
     }
 
 }

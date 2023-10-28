@@ -1,7 +1,7 @@
 package ru.mrsinkaaa.servlets.currency;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.mrsinkaaa.entity.Currency;
+import ru.mrsinkaaa.dto.CurrencyDTO;
 import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
 import ru.mrsinkaaa.exceptions.InvalidInputException;
 import ru.mrsinkaaa.exceptions.currency.CurrencyNotFoundException;
@@ -27,7 +27,7 @@ public class CurrencyServlet extends HttpServlet {
             return;
         }
 
-        Currency currency = null;
+        CurrencyDTO currency = null;
         try {
             String currencyCode = req.getPathInfo().replaceFirst("/", "").toUpperCase();
 

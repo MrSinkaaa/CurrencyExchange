@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
-    private final CurrenciesService currenciesService = new CurrenciesService();
+    private final CurrencyRepository currenciesRepository = new CurrencyRepository();
 
     @Override
     public Optional<ExchangeRate> findById(Long id) throws SQLException {
@@ -33,7 +33,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         final String query = "SELECT * FROM exchangeRates WHERE BaseCurrencyId =?";
 
         PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
-        statement.setLong(1, currenciesService.findByCode(baseCurrencyCode).getId());
+        statement.setLong(1, currenciesRepository.findByCode(baseCurrencyCode).get().getId());
 
         ResultSet resultSet = statement.executeQuery();
         List<ExchangeRate> exchangeRates = new ArrayList<>();
@@ -48,8 +48,8 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         final String query = "SELECT * FROM exchangeRates WHERE BaseCurrencyId = ? AND TargetCurrencyId = ?";
 
         PreparedStatement statement = SQLite.getConnection().prepareStatement(query);
-        statement.setLong(1, currenciesService.findByCode(baseCurrencyCode).getId());
-        statement.setLong(2, currenciesService.findByCode(targetCurrencyCode).getId());
+        statement.setLong(1, currenciesRepository.findByCode(baseCurrencyCode).get().getId());
+        statement.setLong(2, currenciesRepository.findByCode(targetCurrencyCode).get().getId());
 
         ResultSet resultSet = statement.executeQuery();
         if (resultSet.next()) {
@@ -105,8 +105,8 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRate> {
         try {
             return new ExchangeRate(
                     resultSet.getLong("id"),
-                    currenciesService.findById(resultSet.getLong("BaseCurrencyId")),
-                    currenciesService.findById(resultSet.getLong("TargetCurrencyId")),
+                    currenciesRepository.findById(resultSet.getLong("BaseCurrencyId")).get(),
+                    currenciesRepository.findById(resultSet.getLong("TargetCurrencyId")).get(),
                     resultSet.getDouble("rate")
             );
         } catch (SQLException e) {

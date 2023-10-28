@@ -1,5 +1,7 @@
 package ru.mrsinkaaa.service;
 
+import org.modelmapper.ModelMapper;
+import ru.mrsinkaaa.dto.ExchangeRateDTO;
 import ru.mrsinkaaa.entity.Currency;
 import ru.mrsinkaaa.entity.ExchangeRate;
 import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
@@ -17,15 +19,16 @@ public class ExchangeRatesService {
 
     private final ExchangeRatesRepository exchangeRatesRepository = new ExchangeRatesRepository();
     private final CurrenciesService currenciesService = new CurrenciesService();
+    private final ModelMapper modelMapper = new ModelMapper();
 
-    public ExchangeRate findByCodes(String baseCurrencyCode, String targetCurrencyCode) throws SQLException, EmptyFormFieldException, ExchangeRatesNotFoundException {
+    public ExchangeRateDTO findByCodes(String baseCurrencyCode, String targetCurrencyCode) throws SQLException, EmptyFormFieldException, ExchangeRatesNotFoundException {
         if(baseCurrencyCode.isEmpty() || targetCurrencyCode.isEmpty()) {
             throw new EmptyFormFieldException();
         }
 
         Optional<ExchangeRate> exchangeRate = exchangeRatesRepository.findByCodes(baseCurrencyCode, targetCurrencyCode);
         if(exchangeRate.isPresent()) {
-            return exchangeRate.get();
+            return modelMapper.map(exchangeRate.get(), ExchangeRateDTO.class);
         } else {
             throw new ExchangeRatesNotFoundException();
         }
@@ -44,20 +47,17 @@ public class ExchangeRatesService {
         }
     }
 
-    public List<ExchangeRate> findAll() throws SQLException {
-        List<ExchangeRate> exchangeRates = exchangeRatesRepository.findAll();
-        if(!exchangeRates.isEmpty()) {
-            return exchangeRates;
-        } else {
-            throw new ExchangeRatesNotFoundException();
-        }
+    public List<ExchangeRateDTO> findAll() throws SQLException {
+        return exchangeRatesRepository.findAll().stream().map(exchangeRate ->
+                modelMapper.map(exchangeRate, ExchangeRateDTO.class)).toList();
+
     }
 
     public void save(String baseCurrencyCode, String targetCurrencyCode, String rates) throws ExchangeRatesAlreadyExistException, EmptyFormFieldException, CurrencyNotFoundException, InvalidInputException, SQLException {
         ValidationUtils.validateExchangeRate(baseCurrencyCode, targetCurrencyCode, rates);
 
-        Currency baseCurrency = currenciesService.findByCode(baseCurrencyCode);
-        Currency targetCurrency = currenciesService.findByCode(targetCurrencyCode);
+        Currency baseCurrency = modelMapper.map(currenciesService.findByCode(baseCurrencyCode), Currency.class);
+        Currency targetCurrency = modelMapper.map(currenciesService.findByCode(targetCurrencyCode), Currency.class);
         double rate = Double.parseDouble(rates);
 
         ExchangeRate exchangeRate = new ExchangeRate(baseCurrency, targetCurrency, rate);

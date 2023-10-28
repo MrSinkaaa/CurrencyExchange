@@ -1,7 +1,7 @@
 package ru.mrsinkaaa.servlets.exchange;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.mrsinkaaa.entity.ExchangeRate;
+import ru.mrsinkaaa.dto.ExchangeRateDTO;
 import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
 import ru.mrsinkaaa.exceptions.InvalidInputException;
 import ru.mrsinkaaa.exceptions.exchange.ExchangeRatesNotFoundException;
@@ -26,6 +26,8 @@ public class ExchangeRateServlet extends HttpServlet {
         String method = req.getMethod();
         if (method.equals("PATCH")) {
             this.doPatch(req, resp);
+        } else if(method.equals("GET")){
+            this.doGet(req, resp);
         }
     }
 
@@ -55,7 +57,7 @@ public class ExchangeRateServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         if (req.getPathInfo() == null || req.getPathInfo().equals("/")) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid currency code. Use /currency/EURRUB");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid currency code. Use /exchangeRate/EURRUB");
             return;
         }
 
@@ -64,7 +66,7 @@ public class ExchangeRateServlet extends HttpServlet {
         String targetCode = codes.substring(3);
 
         try {
-            ExchangeRate exchangeRate = exchangeRatesService.findByCodes(baseCode, targetCode);
+            ExchangeRateDTO exchangeRate = exchangeRatesService.findByCodes(baseCode, targetCode);
 
             resp.getWriter().println(new ObjectMapper().writeValueAsString(exchangeRate));
         } catch (EmptyFormFieldException | ExchangeRatesNotFoundException e) {

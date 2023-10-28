@@ -1,7 +1,6 @@
 package ru.mrsinkaaa.servlets.currency;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.mrsinkaaa.dto.CurrencyDTO;
 import ru.mrsinkaaa.entity.Currency;
 import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
 import ru.mrsinkaaa.exceptions.InvalidInputException;
@@ -14,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 @WebServlet("/currencies")
@@ -40,13 +37,8 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
-        List<CurrencyDTO> currencies = new ArrayList<>();
         try {
-            for (Currency currency : currenciesService.findAll()) {
-                currencies.add(new CurrencyDTO(currency.getCode(), currency.getFullName(), currency.getSign()));
-            }
-            resp.getWriter().println(new ObjectMapper().writeValueAsString(currencies));
+            resp.getWriter().println(new ObjectMapper().writeValueAsString(currenciesService.findAll()));
         } catch (SQLException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database unavailable");
         }

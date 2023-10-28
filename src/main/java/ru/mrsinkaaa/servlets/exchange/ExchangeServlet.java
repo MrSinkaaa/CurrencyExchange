@@ -1,6 +1,8 @@
 package ru.mrsinkaaa.servlets.exchange;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.modelmapper.ModelMapper;
+import ru.mrsinkaaa.dto.ExchangeDTO;
 import ru.mrsinkaaa.dto.ExchangeRateDTO;
 import ru.mrsinkaaa.entity.ExchangeRate;
 import ru.mrsinkaaa.exceptions.EmptyFormFieldException;
@@ -28,7 +30,7 @@ public class ExchangeServlet extends HttpServlet {
         String targetCode = req.getParameter("to");
         String amount = req.getParameter("amount");
 
-        ExchangeRate exchangeRate;
+        ExchangeRateDTO exchangeRate;
         try {
             ValidationUtils.validateExchangeRate(baseCode, targetCode, amount);
             double parsedAmount = Double.parseDouble(amount);
@@ -59,11 +61,11 @@ public class ExchangeServlet extends HttpServlet {
         }
     }
 
-    private ExchangeRateDTO convertCrossExchangeRates(String baseCode, String targetCode, double amount) throws SQLException {
+    private ExchangeDTO convertCrossExchangeRates(String baseCode, String targetCode, double amount) throws SQLException {
         List<ExchangeRate> exchangeRatesOfBaseCode;
-        List<ExchangeRate> allRates = exchangeRatesService.findAll();
+        List<ExchangeRateDTO> allRates = exchangeRatesService.findAll();
 
-        ExchangeRate generalRates;
+        ExchangeRateDTO generalRates;
         try {
             exchangeRatesOfBaseCode = exchangeRatesService.findByCode(baseCode);
 
@@ -71,7 +73,7 @@ public class ExchangeServlet extends HttpServlet {
 
             double generalAmount = convertExchangeRates(generalRates, amount).getConvertedAmount();
 
-            ExchangeRate generalToTarget = exchangeRatesService.findByCodes(generalRates.getTargetCurrency().getCode(), targetCode);
+            ExchangeRateDTO generalToTarget = exchangeRatesService.findByCodes(generalRates.getTargetCurrency().getCode(), targetCode);
             return convertExchangeRates(generalToTarget, generalAmount);
         } catch (ExchangeRatesNotFoundException e) {
             exchangeRatesOfBaseCode = exchangeRatesService.findByCode(targetCode);
@@ -80,17 +82,17 @@ public class ExchangeServlet extends HttpServlet {
 
             double generalAmount = convertReversedExchangeRates(generalRates, amount).getConvertedAmount();
 
-            ExchangeRate generalToTarget = exchangeRatesService.findByCodes(generalRates.getTargetCurrency().getCode(), baseCode);
+            ExchangeRateDTO generalToTarget = exchangeRatesService.findByCodes(generalRates.getTargetCurrency().getCode(), baseCode);
             return convertReversedExchangeRates(generalToTarget, generalAmount);
         }
     }
 
-    private ExchangeRate getGeneralRates(List<ExchangeRate> exchangeRatesOfBaseCode, List<ExchangeRate> allRates, String targetCode) {
-        ExchangeRate generalRates = null;
+    private ExchangeRateDTO getGeneralRates(List<ExchangeRate> exchangeRatesOfBaseCode, List<ExchangeRateDTO> allRates, String targetCode) {
+        ExchangeRateDTO generalRates = null;
         for (ExchangeRate base : exchangeRatesOfBaseCode) {
-            for (ExchangeRate all : allRates) {
+            for (ExchangeRateDTO all : allRates) {
                 if (base.getTargetCurrency().getCode().equals(all.getBaseCurrency().getCode()) && all.getTargetCurrency().getCode().equals(targetCode)) {
-                    generalRates = base;
+                    generalRates = new ModelMapper().map(base, ExchangeRateDTO.class);
                     break;
                 }
             }
@@ -98,10 +100,10 @@ public class ExchangeServlet extends HttpServlet {
         return generalRates;
     }
 
-    private ExchangeRateDTO convertReversedExchangeRates(ExchangeRate exchangeRate, double amount) {
+    private ExchangeDTO convertReversedExchangeRates(ExchangeRateDTO exchangeRate, double amount) {
         double convertedAmount = toFixed(amount / exchangeRate.getRate());
 
-        return new ExchangeRateDTO(
+        return new ExchangeDTO(
                 exchangeRate.getTargetCurrency(),
                 exchangeRate.getBaseCurrency(),
                 exchangeRate.getRate(),
@@ -109,10 +111,10 @@ public class ExchangeServlet extends HttpServlet {
                 convertedAmount);
     }
 
-    private ExchangeRateDTO convertExchangeRates(ExchangeRate exchangeRate, double amount) {
+    private ExchangeDTO convertExchangeRates(ExchangeRateDTO exchangeRate, double amount) {
         double convertedAmount = toFixed(exchangeRate.getRate() * amount);
 
-        return new ExchangeRateDTO(
+        return new ExchangeDTO(
                 exchangeRate.getBaseCurrency(),
                 exchangeRate.getTargetCurrency(),
                 exchangeRate.getRate(),
@@ -125,7 +127,7 @@ public class ExchangeServlet extends HttpServlet {
         return Math.round(number * scale) / scale;
     }
 
-    private void sendResponse(HttpServletResponse resp, ExchangeRateDTO exchangeRateDTO) throws IOException {
-        resp.getWriter().println(new ObjectMapper().writeValueAsString(exchangeRateDTO));
+    private void sendResponse(HttpServletResponse resp, ExchangeDTO exchangeDTO) throws IOException {
+        resp.getWriter().println(new ObjectMapper().writeValueAsString(exchangeDTO));
     }
 }
