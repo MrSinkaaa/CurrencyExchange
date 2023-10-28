@@ -14,7 +14,7 @@ The project doesnt have a web interface.
 - Tomcat 9
 - Deploy in VPS (Ubuntu 20.04)
 
-  ### EndPoins
+## EndPoins
   
 * GET
   * <span style="color:white">/currencies</span> – get all currencies
