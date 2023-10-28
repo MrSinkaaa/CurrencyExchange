@@ -34,5 +34,4 @@ The project doesnt have a web interface.
 * PATCH
   * <span style="color:white">/exchangeRate/</span>USDRUB?rate=70 – update existing exchange rate in database
  
-
-  link: http://162.19.230.173:8080/CurrencyExchange/
+link: http://162.19.230.173:8080/CurrencyExchange/
